@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>客户信息管理</title>
+<link rel="stylesheet" type="text/css" href="../ui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../ui/themes/icon.css">
+<script type="text/javascript" src="../ui/jquery.min.js"></script>
+<script type="text/javascript" src="../ui/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../ui/locale/easyui-lang-zh_CN.js"></script>
+
+<script>
+//点击提交按钮触发该方法提交表单
+function submitForm(){
+// submit the form    
+$('#ff').submit();  
+}
+
+		$(function(){
+			//-------------------------------------------------------------------------
+			$('#w').window('close'); //页面加载完成,确保窗口关闭
+			//-------------------------------------------------------------------------
+			$('#ff').form({    
+			    url:'${pageContext.request.contextPath}/UserAction_regist',    
+			    onSubmit: function(){    
+			        // do some check    
+			        // return false to prevent submit; 
+			        return true;//让表单直接提交
+			    },    
+			    success:function(data){ //提交成功后调用的方法  
+			    	$('#w').window('close');//提交成功关闭窗口
+			    	$('#test').datagrid('reload'); //提交成功,重新加载列表数据   
+			    	$('#ff').form('clear');//提交成功后,清空表单
+			    }    
+			});  
+		
+			
+			//--------------------------------------------------------------------------
+			$('#test').datagrid({
+				title:'用户列表', //表格标题
+				singleSelect:true, //只允许单选
+				iconCls:'icon-tip',//表格标题图标
+				//width:700, //宽度
+				//height:350, //高度
+				nowrap: true,//某列数据较长时,是否需要换行
+				striped: true,//是否隔行变色
+				collapsible:false,//是否可以折叠表格
+				url:'${pageContext.request.contextPath}/UserAction_list',//指定表格数据加载的路径
+				sortName: 'user_id',//指定可以使用哪列进行排序
+				sortOrder: 'desc',//指定默认排序规则 asc/desc
+				remoteSort: false,//是否支持远程
+				idField:'user_id', //那一列是id列
+				frozenColumns:[[
+	                {field:'ck',checkbox:true},
+	                {title:'用户id',field:'user_id',width:80,sortable:true}
+				]],
+				columns:[[
+					{field:'user_name',title:'用户名',width:120},
+					{field:'user_code',title:'登录名',width:220}
+				]],
+				pagination:true,
+				rownumbers:true,
+				toolbar:[{ //配置工具栏
+					id:'btnadd',
+					text:'添加用户',
+					iconCls:'icon-add',
+					handler:function(){
+						$('#btnsave').linkbutton('enable');
+						//打开前清空表单
+						$('#ff').form('clear');
+						//打开表单窗口
+						$('#w').window('open');
+					}
+				},{
+					id:'btncut',
+					text:'修改用户',
+					iconCls:'icon-cut',
+					handler:function(){
+						$('#btnsave').linkbutton('enable');
+						//获得被选中的用户的id
+						var user_id = getSelected();
+						
+						if(!user_id){
+							alert("请选择用户!");
+							return;
+						}
+						//根据id回显数据
+						$('#ff').form('load','${pageContext.request.contextPath}/UserAction_toEdit?user_id='+user_id);
+						//清空密码输入框
+						
+						//打开编辑窗口
+						$('#w').window('open');
+					
+					}
+				},'-',{
+					id:'btnsave',
+					text:'删除用户',
+					disabled:false, //禁用属性
+					iconCls:'icon-save',
+					handler:function(){
+						$('#btnsave').linkbutton('enable');//点击后按钮是否可以继续点击
+						//获得被选中的用户id
+						//获得被选中的用户的id
+						var user_id = getSelected();
+						//判断id不能为空
+						if(!user_id){
+							alert("请选择用户!");
+							return;
+						}
+						//调用ajax异步发送请求删除用户
+						$.get("${pageContext.request.contextPath}/UserAction_delete?user_id="+user_id, function(data){
+								//删除成功后,刷新列表
+							 $('#test').datagrid('reload'); //提交成功,重新加载列表数据   
+							});
+					}
+				}]
+			});
+			var p = $('#test').datagrid('getPager');
+			$(p).pagination({
+				onBeforeRefresh:function(){
+					alert('before refresh');
+				}
+			});
+		});
+		function resize(){
+			$('#test').datagrid('resize', {
+				width:700,
+				height:400
+			});
+		}
+		//获得被选中的
+		function getSelected(){
+			var selected = $('#test').datagrid('getSelected');
+			if (selected){
+				return selected.user_id;
+			}
+		}
+		function getSelections(){
+			var ids = [];
+			var rows = $('#test').datagrid('getSelections');
+			for(var i=0;i<rows.length;i++){
+				ids.push(rows[i].code);
+			}
+			alert(ids.join(':'));
+		}
+		function clearSelections(){
+			$('#test').datagrid('clearSelections');
+		}
+		function selectRow(){
+			$('#test').datagrid('selectRow',2);
+		}
+		function selectRecord(){
+			$('#test').datagrid('selectRecord','002');
+		}
+		function unselectRow(){
+			$('#test').datagrid('unselectRow',2);
+		}
+		function mergeCells(){
+			$('#test').datagrid('mergeCells',{
+				index:2,
+				field:'addr',
+				rowspan:2,
+				colspan:2
+			});
+		}
+	</script>
+</head>
+<body>
+<table id="test"></table>
+<!-- --------------------------------------------------------------------------- -->
+<div id="w" class="easyui-window" title="My Window" iconCls="icon-save" style="width:500px;height:200px;padding:5px;">
+<div style="background:#fafafa;padding:10px;width:300px;height:300px;">
+	    <form id="ff" method="post" novalidate>
+	    	<input  type="hidden" name="user_id"  >
+	        <div>
+	            <label for="name">登陆名称:</label>
+	            <input class="easyui-validatebox" type="text" name="user_code" required="true"></input>
+	        </div>
+	        <div>
+	            <label for="name">登陆密码:</label>
+	            <input class="easyui-validatebox" type="password" name="user_password" id="user_password"  required="true"></input>
+	        </div>
+	        <div>
+	            <label for="name">用户昵称:</label>
+	            <input class="easyui-validatebox" type="text" name="user_name" required="true"></input>
+	        </div>
+	        <div>
+	            <input type="button" value="提交" onclick="submitForm();" >
+	        </div>
+	    </form>
+	</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+   "menus" : [{"icon" : "icon-sys","menuid" : "1","menuname" : "用户管理","url" : "","menus" : [
+                 {"icon" : "icon-log","menuid" : "1_1","menuname" : "用户列表","url" : "views/user.html"
+                 },
+                 {"icon" : "icon-log","menuid" : "1_1","menuname" : "客户拜访","url" : "views/salevisit.html"
+                 }
+                ]
+               }
+             ]
+}
